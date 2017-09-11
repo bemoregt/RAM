@@ -1,33 +1,38 @@
 """Recurrent Models of Visual Attention V. Mnih et al."""
-
+# 파이썬 호환성 처리
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+# 패키지 로딩.
 import logging
 import tensorflow as tf
 import numpy as np
 
+# 엿보기 파이썬 로딩.
 from glimpse import GlimpseNet, LocNet
+# 로그우도함수 파이썬 등 로딩
 from utils import weight_variable, bias_variable, loglikelihood
+# 콘피그 파이썬 로닝.
 from config import Config
 
+# 엠니스트 데이타모듈 로딩
 from tensorflow.examples.tutorials.mnist import input_data
-
+# 로그 준비
 logging.getLogger().setLevel(logging.INFO)
-
+# 리커런트 넷 설정
 rnn_cell = tf.nn.rnn_cell
 seq2seq = tf.nn.seq2seq
-
+# 데이타 리딩
 mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
-
+# 콘피그 인스턴스
 config = Config()
 n_steps = config.step
-
+# 위치 리스트 변수들
 loc_mean_arr = []
 sampled_loc_arr = []
 
-
+# 다음 입력 ? --------------------------
 def get_next_input(output, i):
   loc, loc_mean = loc_net(output)
   gl_next = gl(loc)
@@ -35,19 +40,21 @@ def get_next_input(output, i):
   sampled_loc_arr.append(loc)
   return gl_next
 
-# placeholders
+# 필기체 이미지와 레이블들
 images_ph = tf.placeholder(tf.float32,
                            [None, config.original_size * config.original_size *
                             config.num_channels])
 labels_ph = tf.placeholder(tf.int64, [None])
 
 # Build the aux nets.
+# 엿보기넷 과 위치넷 생성
 with tf.variable_scope('glimpse_net'):
   gl = GlimpseNet(config, images_ph)
 with tf.variable_scope('loc_net'):
   loc_net = LocNet(config)
 
 # number of examples
+# 
 N = tf.shape(images_ph)[0]
 init_loc = tf.random_uniform((N, 2), minval=-1, maxval=1)
 init_glimpse = gl(init_loc)
